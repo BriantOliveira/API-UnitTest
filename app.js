@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /*
-*   Barnes and noble Tutorial
+*   Barnes and noble clone Tutorial
 *   REST API Unit Test
 */
 
@@ -20,6 +20,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /** Import Routes */
+const bookRouter = require('./controllers/book');
 
 /** Set up static public directory */
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -51,6 +52,7 @@ if(config.util.getEnv('NODE_ENV') !== 'test') {
 }
 
 /** Set up routes */
+app.use('/books', bookRouter);
 
 /** Any remaining request with an extension (.js, .css, etc...) send 404 */
 app.use((req, res, next) => {
