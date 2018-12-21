@@ -21,6 +21,8 @@ const PORT = process.env.PORT || 3000;
 
 /** Import Routes */
 
+/** Set up static public directory */
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 /** Middleware */
 app.use(cookieParser());
