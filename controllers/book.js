@@ -4,17 +4,17 @@
 
 const { Router } = require('express');
 const { respondWith } = require('../utils/clientResponse');
-const  Book = require('../models/books');
+const Book = require('../models/books');
+
 const router = Router();
 
 /*
 * GET - Retrieve all the books
 */
-router.get('/all/books', (req, res) => {
+router.get('/all', (req, res) => {
   // Query the database
   const findAllBooks = Book.find({});
   findAllBooks.exec((err, books) => {
-
     // Early exit if books are not found
     if (err) {
       return respondWith(res, 500, ['An error occurred while retriving all books'], { err });
@@ -31,7 +31,6 @@ router.post('/create', (req, res) => {
 
   // Save it in the database
   newBook.save((err, book) => {
-
     // Early exit if error occurs
     if (err) {
       return respondWith(res, 500, ['An error occurred while saving new book'], { err });
@@ -41,47 +40,38 @@ router.post('/create', (req, res) => {
 });
 
 /*
-* GET - Retrieve book by id 
+* GET - Retrieve book by id
 */
 router.get('/:id', (req, res) => {
   // Find book by id
-  const findBook = Book.findById(req.params.id);
-
-  // Early exist if book is not found
-  if (!findBook) {
-    return respondWith(res, 404, ['Could not find book requested']);
-  }
-  return  respondWith(res, 200, ['Book found successfully'], { findBook });
+  const findBook = Book.findById(req.params.id, (err, book) => {
+    // Early exist if book is not found
+    if (!findBook) {
+      return respondWith(res, 404, ['Could not find book requested'], { err });
+    }
+    return respondWith(res, 200, ['Book found successfully'], { book });
+  });
 });
 
 /*
 *  DELETE - Delete book by id
 */
-router.delete('/:id', (res, req) => {
-  const deletedBook = Book.remove({ _id: req.params.id })
-
-  // Early exist if an error occurs
-  if (!deletedBook) {
-    return respondWith(res, 500, ['An error occurred while deleting book']);
-  }
-  return respondWith(res, 200, ['Book deleted successfully'], { deletedBook });
+router.delete('/:id', (req, res) => {
+  Book.findByIdAndRemove(req.params.id, book => respondWith(res, 200, ['Book deleted successfully'], { book }));
 });
 
 /*
-*   PUT - update book by id 
+*   PUT - update book by id
 */
 router.put('/:id', (req, res) => {
-  findBook = Book.findById({ _id: req.params.id })
-
-   // Early exist if an error occurs
-   if (!findBook) {
-    return respondWith(res, 500, ['An error occurred while updating book']);
-  }
-
-  // Update book and save update to the database
-  Object.assign(findBook, req.body).save((err, book) => {
-    if (err) res.send(err);
-    return respondWith(res, 200, ['Book updated successfully.'], { book }) 
+  Book.findById({ _id: req.params.id }, (err, book) => {
+    if (err) {
+      return respondWith(res, 500, { err });
+    }
+    Object.assign(book, req.body).save((err, book) => {
+      if (err) res.send(err);
+      return respondWith(res, 200, ['Book updated successfully.'], { book });
+    });
   });
 });
 
