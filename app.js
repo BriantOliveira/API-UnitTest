@@ -13,7 +13,7 @@ const sanitizer = require('sanitize');
 const expressSanitizer = require('express-sanitizer');
 const bodyParser = require('body-parser');
 // const morgan = require('morgan');
-// const config = require('./config');
+const config = require('./config/env');
 
 /** Instantiate the server */
 const app = express();
@@ -45,19 +45,17 @@ let options = {
 /** MongoDB connection*/
 mongoose.Promise = global.Promise;
 
-mongoose.connect(process.env.DBURI, {useMongoClient: true});
-
-let db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function () {
-  console.log('Connected to the bookstore db sucessfully.')
+mongoose.connect(config.db, {useMongoClient: true});
+mongoose.connection.on('error', () => {
+  throw new Error(`unable to connect to database: ${config.db}`);
+});
+mongoose.connection.on('connected', () => {
+  console.log(`Connected to database: ${config.db}`);
 });
 
-//don't show the log when it is test
-// if(config.util.getEnv('NODE_ENV') !== 'test') {
-//     //use morgan to log at command line
-//     app.use(morgan('combined')); //'combined' outputs the Apache style LOGs
-// }
+if (config.env === 'development') {
+  mongoose.set('debug', true);
+}
 
 /** Set up routes */
 app.use('/books', bookRouter);
